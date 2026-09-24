@@ -1,0 +1,43 @@
+# Konfiguration fuer alle vier Bedingungen (ASL Citizen, 100-Klassen-Teilmenge).
+# Alle Bedingungen teilen dieselben Hyperparameter und dieselbe Trainingsdauer.
+
+data:
+  dataset: asl_citizen
+  splits_dir: data/aslc_splits            # train/val/test.csv aus ASL Citizen
+  class_selection: data/aslc_class_selection.json
+  landmarks_dir: data/landmarks_aslc
+  videos_dir: data/videos_aslc
+  num_classes: 100
+  max_missing_hand_frac: 0.30             # >30 % Frames ohne Hand => Ausschluss
+  min_train_sequences_per_class: 10
+  seq_len: 64                             # Frames pro Sequenz nach Resampling
+
+conditions:                               # Rotationsbereich in Grad (0 = Baseline)
+  baseline: 0
+  rot05: 5
+  rot10: 10
+  rot20: 20
+
+experiment:
+  n_seeds: 45                             # a priori (G*Power, einseitig, dz=0.50)
+  results_dir: results_aslc
+  device: cuda                            # ohne GPU wird auf cpu ausgewichen
+  deterministic: true                     # deterministische cuDNN-Kernels
+
+model:                          # in AP 1 festgelegt (src/ap1_search.py, C_klein_subset)
+  landmark_subset: upper_body   # 56 Landmarks: Schultern bis Huefte + beide Haende
+  input_dim: null               # ergibt sich aus landmark_subset (56 x 6 = 336)
+  hidden_dim: 128
+  num_layers: 1
+  dropout: 0.4
+  bidirectional: false
+
+train:
+  epochs: 120
+  batch_size: 16
+  lr: 0.0015
+  weight_decay: 0.01
+  label_smoothing: 0.05
+  warmup_epochs: 5              # lineares Warmup, danach Cosine-Decay
+  grad_clip: 5.0
+  checkpoint: final             # Evaluation nach der letzten Epoche
